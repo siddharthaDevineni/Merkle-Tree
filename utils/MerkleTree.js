@@ -1,5 +1,5 @@
-const { keccak256 } = require('ethereum-cryptography/keccak');
-const { bytesToHex } = require('ethereum-cryptography/utils');
+const { keccak256 } = require("ethereum-cryptography/keccak");
+const { bytesToHex } = require("ethereum-cryptography/utils");
 
 class MerkleTree {
   constructor(leaves) {
@@ -12,58 +12,53 @@ class MerkleTree {
   }
 
   getProof(index, layer = this.leaves, proof = []) {
-    if (layer.length === 1) {
+    if (layer.length == 1) {
       return proof;
     }
-
-    const newLayer = [];
-
-    for (let i = 0; i < layer.length; i += 2) {
-      const left = layer[i];
-      const right = layer[i + 1];
-
-      if (!right) {
-        newLayer.push(left);
-      } else {
-        newLayer.push(this.concat(left, right));
-
-        if (i === index || i === index - 1) {
-          let isLeft = !(index % 2);
-          proof.push({
-            data: isLeft ? bytesToHex(right) : bytesToHex(left),
-            left: !isLeft,
-          });
-        }
-      }
+    if (index % 2 == 0 && layer[index + 1]) {
+      proof.push({
+        data: bytesToHex(layer[index + 1]),
+        left: false,
+      });
+    } else if (index % 2 != 0 && layer[index - 1]) {
+      proof.push({
+        data: bytesToHex(layer[index - 1]),
+        left: true,
+      });
     }
-
-    return this.getProof(
-      Math.floor(index / 2),
-      newLayer,
-      proof
-    );
+    let layer1 = [];
+    let ind = 0;
+    while (ind < layer.length) {
+      if (!layer[ind + 1]) {
+        layer1.push(layer[ind]);
+      } else {
+        layer1.push(this.concat(layer[ind], layer[ind + 1]));
+      }
+      ind += 2;
+    }
+    return this.getProof(Math.floor(index / 2), layer1, proof);
   }
 
   // private function
-  _getRoot(leaves = this.leaves) {
-    if (leaves.length === 1) {
-      return leaves[0];
+  // in next iteration layer become layer1
+  _getRoot(layer = this.leaves) {
+    if (layer.length == 1) {
+      return layer[0];
     }
+    let index = 0;
+    let layer1 = [];
+    while (index < layer.length) {
+      const left = layer[index];
+      const right = layer[index + 1];
 
-    const layer = [];
-
-    for (let i = 0; i < leaves.length; i += 2) {
-      const left = leaves[i];
-      const right = leaves[i + 1];
-
-      if (right) {
-        layer.push(this.concat(left, right));
+      if (!right) {
+        layer1.push(left);
       } else {
-        layer.push(left);
+        layer1.push(this.concat(left, right));
       }
+      index += 2;
     }
-
-    return this._getRoot(layer);
+    return this._getRoot(layer1);
   }
 }
 

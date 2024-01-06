@@ -1,11 +1,13 @@
-const { keccak256 } = require('ethereum-cryptography/keccak');
-const { hexToBytes, bytesToHex } = require('ethereum-cryptography/utils');
+const { keccak256 } = require("ethereum-cryptography/keccak");
+const { hexToBytes, bytesToHex } = require("ethereum-cryptography/utils");
 
 const concat = (left, right) => keccak256(Buffer.concat([left, right]));
 
 function verifyProof(proof, leaf, root) {
-  proof = proof.map(({data, left}) => ({ 
-    left, data: hexToBytes(data)
+  console.log("leaf: ", leaf);
+  proof = proof.map(({ data, left }) => ({
+    left,
+    data: hexToBytes(data),
   }));
   let data = keccak256(Buffer.from(leaf));
 
